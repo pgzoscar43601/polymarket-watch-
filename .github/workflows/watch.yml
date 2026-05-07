@@ -1,0 +1,69 @@
+name: polymarket-watch
+
+# Corre cada hora en punto. También permite trigger manual desde la pestaña Actions de GitHub.
+on:
+  schedule:
+    - cron: "0 * * * *"   # cada hora UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write   # necesario para commitear el state/state.json actualizado
+
+concurrency:
+  group: polymarket-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # checkout completo, necesitamos poder commitear de vuelta
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Run watcher
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          ALERT_MIN_SIZE_USDC: ${{ vars.ALERT_MIN_SIZE_USDC || '50000' }}
+          ALERT_NEW_MARKET_MIN_USDC: ${{ vars.ALERT_NEW_MARKET_MIN_USDC || '10000' }}
+          GMAIL_USER:         ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          GMAIL_TO:           ${{ secrets.GMAIL_TO }}
+        run: python polymarket_watch.py
+
+      - name: Commit updated state
+        run: |
+          set -e
+          git config user.name  "polymarket-watch-bot"
+          git config user.email "polymarket-watch-bot@users.noreply.github.com"
+          if ! git diff --quiet state/; then
+            git add state/
+            git commit -m "chore(state): update snapshot $(date -u +%Y-%m-%dT%H:%M:%SZ) [skip ci]"
+            # retry push if there's a race condition with another concurrent run
+            for i in 1 2 3; do
+              if git push; then
+                exit 0
+              fi
+              echo "push failed, retry $i"
+              git pull --rebase
+              sleep 2
+            done
+            echo "push failed after retries"
+            exit 1
+          else
+            echo "no state changes to commit"
+          fi
