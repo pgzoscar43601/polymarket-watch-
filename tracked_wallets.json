@@ -12,7 +12,7 @@
   },
   {
     "address": "0x492442eab586f242b53bda933fd5de859c8a3782",
-    "nick": "Sharp 4924 (Multicolored-Self)",
+    "nick": "Trader",
     "category": "sports",
     "enabled": true,
     "alert_side": "BUY",
@@ -23,7 +23,7 @@
   },
   {
     "address": "0xdb27bf2ac5d428a9c63dbc914611036855a6c56e",
-    "nick": "Sports Active db27",
+    "nick": "Sports Active C",
     "category": "sports",
     "enabled": true,
     "alert_side": "BUY",
@@ -34,7 +34,7 @@
   },
   {
     "address": "0xed107a85a4585a381e48c7f7ca4144909e7dd2e5",
-    "nick": "Politics Sharp ed10 (Flashy-Label)",
+    "nick": "Politics Sharp",
     "category": "politics_geopolitics",
     "enabled": true,
     "alert_side": "BUY",
@@ -45,7 +45,7 @@
   },
   {
     "address": "0x6a72f61820b26b1fe4d956e17b6dc2a1ea3033ee",
-    "nick": "Sports Active 6a72",
+    "nick": "Sports Active C NBA/NHL",
     "category": "sports",
     "enabled": true,
     "alert_side": "BUY",

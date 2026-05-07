@@ -27,8 +27,11 @@ from datetime import datetime, timezone
 from email.mime.text import MIMEText
 from pathlib import Path
 from typing import Iterable
+from zoneinfo import ZoneInfo
 
 import requests
+
+CDMX_TZ = ZoneInfo("America/Mexico_City")
 
 REPO_ROOT = Path(__file__).resolve().parent
 STATE_PATH = REPO_ROOT / "state" / "state.json"
@@ -184,31 +187,57 @@ def append_alert_log(line: str) -> None:
 def build_alert_msg(wallet_nick: str, trade: dict, kind: str, usd: float) -> str:
     title = trade.get("title", "(unknown market)")
     outcome = trade.get("outcome", "")
-    side = trade.get("side", "?")
+    side = (trade.get("side") or "?").upper()
     price = float(trade.get("price", 0))
-    pseudo = trade.get("pseudonym") or ""
     url = trade_event_url(trade)
     ts = trade.get("timestamp")
-    ts_str = (
-        datetime.fromtimestamp(int(ts), tz=timezone.utc).strftime("%H:%M UTC")
-        if ts else ""
-    )
+
+    # Timestamps en CDMX y UTC
+    if ts:
+        dt_utc = datetime.fromtimestamp(int(ts), tz=timezone.utc)
+        dt_cdmx = dt_utc.astimezone(CDMX_TZ)
+        ts_str = f"{dt_cdmx.strftime('%H:%M CDMX')} ({dt_utc.strftime('%H:%M UTC')})"
+    else:
+        ts_str = ""
+
     icon = {
         "BIG_TRADE": "🔥",
         "NEW_MARKET": "🆕",
     }.get(kind, "•")
+
+    # ---- header ----
     parts = [
         f"{icon} <b>{wallet_nick}</b> {side} {fmt_usd(usd)} @ {price:.3f}",
         f"<i>{title}</i>",
     ]
     if outcome:
-        parts.append(f"Outcome: <b>{outcome}</b>")
-    if pseudo:
-        parts.append(f"alias: {pseudo}")
+        parts.append(f"Apostando a: <b>{outcome}</b>")
     if ts_str:
         parts.append(ts_str)
     if url:
-        parts.append(f'<a href="{url}">→ open market</a>')
+        parts.append(f'<a href="{url}">→ ver mercado</a>')
+
+    # ---- explicación didáctica ----
+    parts.append("")  # línea en blanco
+    parts.append("📖 <i>Cómo leerlo:</i>")
+    if side == "BUY" and price > 0:
+        # Calcular shares y ganancia potencial
+        shares = usd / price
+        max_payout = shares  # cada share paga $1 si gana
+        profit_if_win = max_payout - usd
+        implied_prob_pct = price * 100
+        parts.append(f"• Compró <b>{fmt_usd(usd)}</b> apostando a que <b>{outcome or 'YES'}</b>")
+        parts.append(f"• Pagó ${price:.2f} por share — el mercado dice prob {implied_prob_pct:.0f}%")
+        parts.append(f"• Si acierta cobra ≈ {fmt_usd(max_payout)} (gana {fmt_usd(profit_if_win)})")
+        parts.append(f"• Si falla pierde {fmt_usd(usd)}")
+    elif side == "SELL" and price > 0:
+        implied_prob_pct = price * 100
+        parts.append(f"• Vendió <b>{fmt_usd(usd)}</b> de su posición en <b>{outcome or 'YES'}</b>")
+        parts.append(f"• Cobró ${price:.2f} por share (mercado prob {implied_prob_pct:.0f}%)")
+        parts.append(f"• Está saliendo (toma profit o corta pérdida)")
+    else:
+        parts.append("• Trade detectado, datos incompletos para explicación")
+
     return "\n".join(parts)
 
 
