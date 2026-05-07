@@ -49,6 +49,35 @@ GMAIL_TO = os.environ.get("GMAIL_TO", GMAIL_USER).strip()
 UA = {"User-Agent": "polymarket-watch/0.1 (+github actions)"}
 
 
+# Categorias para filtro per-wallet. Mapeo de keywords -> categoría canónica.
+CATEGORY_KEYWORDS = {
+    "NBA": ["nba","lakers","celtics","warriors","nuggets","mavs","heat","bucks","knicks","sixers","76ers","clippers","suns","kings","timberwolves","grizzlies","spurs","jazz","blazers","nets","raptors","pistons","cavaliers","hawks","wizards","magic","hornets","pelicans","bulls","thunder","rockets"],
+    "NFL": ["nfl","chiefs","bills","ravens","49ers","cowboys","eagles","dolphins","jets","steelers","packers","lions","bears","vikings","falcons","saints","panthers","rams","seahawks","broncos","chargers","raiders","texans","colts","jaguars","titans","commanders","patriots","bengals","browns","buccaneers"],
+    "Soccer": ["soccer","ucl","epl","uel","la liga","laliga","premier league","serie a","champions","real madrid","barcelona","manchester","arsenal","liverpool","bayern","psg","chelsea","tottenham","city ","united","inter","milan","juventus","atletico","fifa","world cup","mls","alianza","fluminense","conmebol","libertadores","lyon","benfica","galatasaray"],
+    "MLB": ["mlb","yankees","dodgers","mets","red sox","astros","cubs","cardinals","braves","phillies","padres","mariners","rangers","angels","brewers","reds","pirates","rockies","royals","tigers","twins","blue jays","guardians","nationals","marlins","orioles","rays","athletics","baseball"],
+    "NHL": ["nhl","penguins","flyers","sabres","bruins","stars","wild","oilers","leafs","habs","canucks","golden knights","ducks","sharks","blackhawks","capitals","senators","hurricanes"],
+    "Tennis/UFC": ["tennis","atp","wta","wimbledon","ufc","mma","djokovic","alcaraz","sinner","medvedev"],
+    "Politics": ["election","trump","biden","kamala","harris","president","governor","senate","congress","democrat","republican","gop","primary","poll","vote","mayor","scotus","supreme court"],
+    "Geopolitics": ["russia","ukraine","china","iran","israel","hamas","gaza","putin","nato","war","ceasefire","sanctions","tariff","north korea","strait of hormuz","hezbollah"],
+    "Macro/Fed": ["fed ","fomc","interest rate","inflation","cpi","unemployment","gdp","recession","powell"],
+    "Crypto": ["bitcoin","btc","ethereum","eth","solana","sol","xrp","doge","crypto","etf","halving"],
+    "Tech/AI": ["openai","gpt","anthropic","claude","ai ","apple","google","tesla","spacex","musk","nvidia","microsoft"],
+    "Entertainment": ["oscar","grammy","emmy","movie","film","celebrity","box office","netflix","mrbeast","eurovision"],
+}
+
+
+def categorize_market(title: str) -> str:
+    """Clasifica un mercado a una categoría canónica basada en keywords del título."""
+    if not title:
+        return "Other"
+    t = title.lower()
+    for cat, kws in CATEGORY_KEYWORDS.items():
+        for kw in kws:
+            if kw in t:
+                return cat
+    return "Other"
+
+
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -186,20 +215,23 @@ def build_alert_msg(wallet_nick: str, trade: dict, kind: str, usd: float) -> str
 def process_wallet(wallet: dict, state_w: dict, first_run: bool) -> tuple[list[str], dict]:
     """Returns (alerts, updated_state_w).
 
+    Per-wallet config:
+    - wallet["enabled"]: si False, la wallet se procesa silenciosamente (bootstrap state) pero NO emite alertas.
+    - wallet["alert_side"]: "BUY" o "SELL". Solo emite alertas para trades de ese lado. Default: ambos.
+    - wallet["alert_categories"]: lista de categorías permitidas (ej. ["NBA","NHL"]). Si está vacía, todas.
+    - wallet["alert_min_size_usdc"]: umbral mínimo USDC para emitir alerta BIG_TRADE.
+    - wallet["alert_new_market_min_usdc"]: umbral mínimo USDC para alerta NEW_MARKET.
+
     Bootstrap rules:
     - first_run = True: no alerts for ANY wallet (system-wide first run)
     - first_run = False but state_w is empty: no alerts for THIS wallet
-      (wallet just added to tracked_wallets.json — bootstrap individually
-      to avoid spamming 200 historic trades)
-
-    Per-wallet thresholds:
-    - wallet["alert_min_size_usdc"]: override BIG_TRADE threshold for this wallet.
-      Falls back to global ALERT_MIN_SIZE_USDC env var.
-    - wallet["alert_new_market_min_usdc"]: override NEW_MARKET threshold.
-      Falls back to global ALERT_NEW_MARKET_MIN_USDC env var.
+      (wallet just added — bootstrap individually to avoid spamming historic trades)
     """
     address = wallet["address"].lower()
     nick = wallet.get("nick") or short_addr(address)
+    enabled = wallet.get("enabled", True)
+    alert_side = (wallet.get("alert_side") or "").upper()  # "" = ambos lados
+    alert_categories = wallet.get("alert_categories") or []  # [] = todas las categorías
     big_threshold = float(wallet.get("alert_min_size_usdc", ALERT_MIN_SIZE_USDC))
     new_market_threshold = float(wallet.get("alert_new_market_min_usdc", ALERT_NEW_MARKET_MIN_USDC))
 
@@ -224,6 +256,8 @@ def process_wallet(wallet: dict, state_w: dict, first_run: bool) -> tuple[list[s
 
     if bootstrap and not first_run:
         print(f"[INFO] {nick}: new wallet, bootstrapping silently ({len(trades)} historic trades)")
+    if not enabled:
+        print(f"[INFO] {nick}: disabled (state preserved, no alerts)")
 
     # Sort oldest -> newest so notifications arrive in chronological order
     trades_sorted = sorted(trades, key=lambda t: t.get("timestamp", 0))
@@ -242,8 +276,25 @@ def process_wallet(wallet: dict, state_w: dict, first_run: bool) -> tuple[list[s
         new_seen_tx.append(tx)
         usd = usdc_value(t)
 
-        # Bootstrap: just record state, no alerts
-        if bootstrap:
+        # Bootstrap or disabled: just record state, no alerts
+        if bootstrap or not enabled:
+            if condition_id and condition_id not in seen_markets:
+                new_seen_markets.append(condition_id)
+                seen_markets.add(condition_id)
+            continue
+
+        # Filter by side (only emit alerts for matching side)
+        trade_side = (t.get("side") or "").upper()
+        if alert_side and trade_side != alert_side:
+            if condition_id and condition_id not in seen_markets:
+                new_seen_markets.append(condition_id)
+                seen_markets.add(condition_id)
+            continue
+
+        # Filter by category
+        title = t.get("title", "")
+        cat = categorize_market(title)
+        if alert_categories and cat not in alert_categories:
             if condition_id and condition_id not in seen_markets:
                 new_seen_markets.append(condition_id)
                 seen_markets.add(condition_id)
@@ -270,6 +321,7 @@ def process_wallet(wallet: dict, state_w: dict, first_run: bool) -> tuple[list[s
     state_w["last_seen_at"] = utc_now_iso()
     state_w["last_trade_count"] = len(trades_sorted)
     state_w["alert_min_size_usdc"] = big_threshold
+    state_w["enabled"] = enabled
 
     return alerts, state_w
 

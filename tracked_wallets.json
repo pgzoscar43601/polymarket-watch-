@@ -3,80 +3,90 @@
     "address": "0xbddf61af533ff524d27154e589d2d7a81510c684",
     "nick": "Oscar (Countryside)",
     "category": "sports",
-    "alert_min_size_usdc": 5000,
-    "alert_new_market_min_usdc": 1000,
-    "note": "Tu wallet. Banca ~$637k. Threshold $5k ≈ median bet, captura picks reales (~10/dia)"
+    "enabled": true,
+    "alert_side": "BUY",
+    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Tennis/UFC"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "APOSTADOR. Tu wallet. Regla: cualquier compra en deportes"
   },
   {
     "address": "0x492442eab586f242b53bda933fd5de859c8a3782",
     "nick": "Sharp 4924 (Multicolored-Self)",
     "category": "sports",
-    "alert_min_size_usdc": 20000,
-    "alert_new_market_min_usdc": 5000,
-    "note": "Sharp NBA+NHL. Banca ~$160k. Median $14k. Threshold $20k filtra livianos (~30-50/dia)"
-  },
-  {
-    "address": "0x507e52ef684ca2dd91f90a9d26d149dd3288beae",
-    "nick": "Sports Whale 507e",
-    "category": "sports",
-    "alert_min_size_usdc": 1000,
-    "alert_new_market_min_usdc": 500,
-    "note": "Banca $3.4M pero casi todo en bets micro (median $57). Threshold $1k captura los raros >>(~17/dia)"
-  },
-  {
-    "address": "0x53757615de1c42b83f893b79d4241a009dc2aeea",
-    "nick": "Pure Sports 5375",
-    "category": "sports",
+    "enabled": true,
+    "alert_side": "BUY",
+    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Tennis/UFC"],
     "alert_min_size_usdc": 5000,
-    "alert_new_market_min_usdc": 1000,
-    "note": "Sports puro NBA+MLB. Banca $1.28M. Median $202. $5k captura solo bets grandes (~20/dia)"
+    "alert_new_market_min_usdc": 5000,
+    "note": "TRADER. Regla: BUY > $5,000 en deportes"
   },
   {
     "address": "0xdb27bf2ac5d428a9c63dbc914611036855a6c56e",
     "nick": "Sports Active db27",
     "category": "sports",
-    "alert_min_size_usdc": 20000,
-    "alert_new_market_min_usdc": 5000,
-    "note": "Sharp NBA. Banca $231k. Median $5k. $20k captura los serios (~50/dia)"
+    "enabled": true,
+    "alert_side": "BUY",
+    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Tennis/UFC"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "APOSTADOR. Regla: cualquier compra en deportes"
   },
   {
     "address": "0xed107a85a4585a381e48c7f7ca4144909e7dd2e5",
     "nick": "Politics Sharp ed10 (Flashy-Label)",
     "category": "politics_geopolitics",
-    "alert_min_size_usdc": 100000,
-    "alert_new_market_min_usdc": 25000,
-    "note": "Banca $9.3M. Mega-bets geopolitica. $100k = 1% banca = solo mega convicción (~1-2/dia)"
-  },
-  {
-    "address": "0xead152b855effa6b5b5837f53b24c0756830c76a",
-    "nick": "Diversified ead1 (BOT/MAKER)",
-    "category": "mixed",
-    "alert_min_size_usdc": 10000,
-    "alert_new_market_min_usdc": 5000,
-    "note": "BOT/MAKER, 8500 fills/dia. Banca $873k. p99=$4.7k. $10k captura top 0.5% (~30/dia)"
+    "enabled": true,
+    "alert_side": "BUY",
+    "alert_categories": ["Politics","Geopolitics","Macro/Fed"],
+    "alert_min_size_usdc": 1500,
+    "alert_new_market_min_usdc": 1500,
+    "note": "APOSTADOR. Regla: BUY > $1,500 en política/geopolítica/macro"
   },
   {
     "address": "0x6a72f61820b26b1fe4d956e17b6dc2a1ea3033ee",
     "nick": "Sports Active 6a72",
     "category": "sports",
-    "alert_min_size_usdc": 10000,
-    "alert_new_market_min_usdc": 2000,
-    "note": "NHL+NBA. Banca $467k. Median $676. $10k = 15x avg = solo grandes (~30/dia)"
+    "enabled": true,
+    "alert_side": "BUY",
+    "alert_categories": ["NBA","NHL"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "APOSTADOR. Regla: cualquier compra NBA/NHL"
   },
   {
     "address": "0x204f72f35326db932158cba6adff0b9a1da95e14",
-    "nick": "Top1 Human 204f (Frail-Possible) (BOT)",
+    "nick": "Top1 Human 204f",
     "category": "mixed",
-    "alert_min_size_usdc": 2000,
-    "alert_new_market_min_usdc": 500,
-    "note": "BOT MASIVO 22k fills/dia. Banca $257k. Avg $196. $2k = 10x avg = solo fuera de patrón (~10-20/dia)"
+    "enabled": false,
+    "note": "MAKER — bajo vigilancia, sin alertas. State se mantiene"
+  },
+  {
+    "address": "0x53757615de1c42b83f893b79d4241a009dc2aeea",
+    "nick": "Pure Sports 5375",
+    "category": "sports",
+    "enabled": false,
+    "note": "MAKER — bajo vigilancia, sin alertas. State se mantiene"
   },
   {
     "address": "0xd218e474776403a330142299f7796e8ba32eb5c9",
-    "nick": "System d218 (Attentive-Crewman) (BOT)",
+    "nick": "System d218",
     "category": "mixed",
-    "alert_min_size_usdc": 1000,
-    "alert_new_market_min_usdc": 250,
-    "note": "BOT 4k fills/dia. Banca $206k. Avg $118. $1k = 8x avg = señales fuera de patrón (~10/dia)"
+    "enabled": false,
+    "note": "MAKER/HFT — bajo vigilancia, sin alertas"
+  },
+  {
+    "address": "0xead152b855effa6b5b5837f53b24c0756830c76a",
+    "nick": "Diversified ead1",
+    "category": "mixed",
+    "enabled": false,
+    "note": "TRADER mercados raros — bajo vigilancia, sin alertas"
+  },
+  {
+    "address": "0x507e52ef684ca2dd91f90a9d26d149dd3288beae",
+    "nick": "Sports Whale 507e",
+    "category": "sports",
+    "enabled": false,
+    "note": "TRADER — bajo vigilancia, sin alertas"
   }
 ]
