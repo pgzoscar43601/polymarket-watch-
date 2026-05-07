@@ -50,8 +50,9 @@ jobs:
           set -e
           git config user.name  "polymarket-watch-bot"
           git config user.email "polymarket-watch-bot@users.noreply.github.com"
-          if ! git diff --quiet state/; then
-            git add state/
+          # stage first (catches new untracked files like state.json on first run)
+          git add state/
+          if ! git diff --cached --quiet; then
             git commit -m "chore(state): update snapshot $(date -u +%Y-%m-%dT%H:%M:%SZ) [skip ci]"
             # retry push if there's a race condition with another concurrent run
             for i in 1 2 3; do
