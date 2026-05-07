@@ -53,19 +53,28 @@ jobs:
           git config user.email "polymarket-watch-bot@users.noreply.github.com"
           # stage first (catches new untracked files like state.json on first run)
           git add state/
-          if ! git diff --cached --quiet; then
-            git commit -m "chore(state): update snapshot $(date -u +%Y-%m-%dT%H:%M:%SZ) [skip ci]"
-            # retry push if there's a race condition with another concurrent run
-            for i in 1 2 3; do
-              if git push; then
-                exit 0
-              fi
-              echo "push failed, retry $i"
-              git pull --rebase
-              sleep 2
-            done
-            echo "push failed after retries"
-            exit 1
-          else
+          if git diff --cached --quiet; then
             echo "no state changes to commit"
+            exit 0
           fi
+          git commit -m "chore(state): update snapshot $(date -u +%Y-%m-%dT%H:%M:%SZ) [skip ci]"
+
+          # Push con retry y rebase. El concurrency group del workflow ya evita
+          # 2 runs simultáneos, pero un commit manual puede colisionar.
+          for i in 1 2 3 4 5; do
+            if git push 2>&1 | tee /tmp/push.log; then
+              echo "push OK on attempt $i"
+              exit 0
+            fi
+            echo "push failed (attempt $i), rebasing and retrying..."
+            # Pequeño jitter aleatorio (1-5s) para evitar thundering herd
+            sleep $((RANDOM % 5 + 1))
+            # Pull con rebase: trae cambios remotos sin perder nuestro commit
+            if ! git pull --rebase --autostash; then
+              echo "rebase failed, aborting"
+              git rebase --abort 2>/dev/null || true
+              exit 1
+            fi
+          done
+          echo "push failed after 5 retries"
+          exit 1

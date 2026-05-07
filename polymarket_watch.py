@@ -1,19 +1,30 @@
 #!/usr/bin/env python3
 """Polymarket wallet watcher.
 
-Cada hora (via GitHub Actions cron) revisa las wallets en tracked_wallets.json,
-detecta trades nuevos vía Polymarket Data API (free, sin key), y manda alertas a
-Telegram cuando hay un trade > ALERT_MIN_SIZE_USDC o cuando un wallet entra a un
-mercado nuevo.
+Corre cada 5 min via GitHub Actions cron. Para cada wallet en
+tracked_wallets.json revisa trades nuevos vía Polymarket Data API (free, sin
+key) y manda alertas a Telegram según las reglas per-wallet (side, categoría,
+umbral USDC).
 
-Stateless excepto por state/state.json (committed back al repo cada run).
+State persistente en state/state.json (commiteado de vuelta al repo cada run
+para que los siguientes runs sepan qué tx_hashes ya alertaron).
 
-Env vars (GitHub Secrets):
-  TELEGRAM_BOT_TOKEN  - obligatorio
-  TELEGRAM_CHAT_ID    - obligatorio
-  ALERT_MIN_SIZE_USDC - opcional, default 50000
-  GMAIL_USER          - opcional (para fallback email)
-  GMAIL_APP_PASSWORD  - opcional
+Env vars (GitHub Secrets/Variables):
+  TELEGRAM_BOT_TOKEN          - obligatorio (secret)
+  TELEGRAM_CHAT_ID            - obligatorio (secret)
+  ALERT_MIN_SIZE_USDC         - opcional fallback global (var), default 50000
+                                — la mayoría de wallets define el suyo en JSON
+  ALERT_NEW_MARKET_MIN_USDC   - opcional fallback global (var), default 10000
+  GMAIL_USER                  - opcional (secret) — fallback email backup
+  GMAIL_APP_PASSWORD          - opcional (secret)
+  GMAIL_TO                    - opcional (secret), default = GMAIL_USER
+
+Per-wallet config (tracked_wallets.json):
+  enabled                     - bool, default true
+  alert_side                  - "BUY"/"SELL", default ambos
+  alert_categories            - lista, default todas
+  alert_min_size_usdc         - float, default ALERT_MIN_SIZE_USDC
+  alert_new_market_min_usdc   - float, default ALERT_NEW_MARKET_MIN_USDC
 """
 
 from __future__ import annotations
@@ -52,25 +63,37 @@ GMAIL_TO = os.environ.get("GMAIL_TO", GMAIL_USER).strip()
 UA = {"User-Agent": "polymarket-watch/0.1 (+github actions)"}
 
 
-# Categorias para filtro per-wallet. Mapeo de keywords -> categoría canónica.
+# Categorías para filtro per-wallet. Mapeo de keywords -> categoría canónica.
+# Orden importa: la primera categoría que matchee se elige. Ponemos las
+# más específicas primero (Golf antes que cualquier "tournament" genérico, etc.).
 CATEGORY_KEYWORDS = {
-    "NBA": ["nba","lakers","celtics","warriors","nuggets","mavs","heat","bucks","knicks","sixers","76ers","clippers","suns","kings","timberwolves","grizzlies","spurs","jazz","blazers","nets","raptors","pistons","cavaliers","hawks","wizards","magic","hornets","pelicans","bulls","thunder","rockets"],
+    "NBA": ["nba ","lakers","celtics","warriors","nuggets","mavericks","mavs","heat","bucks","knicks","sixers","76ers","clippers","suns","kings","timberwolves","grizzlies","spurs","jazz","blazers","trail blazers","nets","raptors","pistons","cavaliers"," cavs","hawks","wizards","magic","hornets","pelicans","bulls","thunder","rockets"],
     "NFL": ["nfl","chiefs","bills","ravens","49ers","cowboys","eagles","dolphins","jets","steelers","packers","lions","bears","vikings","falcons","saints","panthers","rams","seahawks","broncos","chargers","raiders","texans","colts","jaguars","titans","commanders","patriots","bengals","browns","buccaneers"],
-    "Soccer": ["soccer","ucl","epl","uel","la liga","laliga","premier league","serie a","champions","real madrid","barcelona","manchester","arsenal","liverpool","bayern","psg","chelsea","tottenham","city ","united","inter","milan","juventus","atletico","fifa","world cup","mls","alianza","fluminense","conmebol","libertadores","lyon","benfica","galatasaray"],
-    "MLB": ["mlb","yankees","dodgers","mets","red sox","astros","cubs","cardinals","braves","phillies","padres","mariners","rangers","angels","brewers","reds","pirates","rockies","royals","tigers","twins","blue jays","guardians","nationals","marlins","orioles","rays","athletics","baseball"],
-    "NHL": ["nhl","penguins","flyers","sabres","bruins","stars","wild","oilers","leafs","habs","canucks","golden knights","ducks","sharks","blackhawks","capitals","senators","hurricanes"],
-    "Tennis/UFC": ["tennis","atp","wta","wimbledon","ufc","mma","djokovic","alcaraz","sinner","medvedev"],
-    "Politics": ["election","trump","biden","kamala","harris","president","governor","senate","congress","democrat","republican","gop","primary","poll","vote","mayor","scotus","supreme court"],
-    "Geopolitics": ["russia","ukraine","china","iran","israel","hamas","gaza","putin","nato","war","ceasefire","sanctions","tariff","north korea","strait of hormuz","hezbollah"],
-    "Macro/Fed": ["fed ","fomc","interest rate","inflation","cpi","unemployment","gdp","recession","powell"],
-    "Crypto": ["bitcoin","btc","ethereum","eth","solana","sol","xrp","doge","crypto","etf","halving"],
-    "Tech/AI": ["openai","gpt","anthropic","claude","ai ","apple","google","tesla","spacex","musk","nvidia","microsoft"],
-    "Entertainment": ["oscar","grammy","emmy","movie","film","celebrity","box office","netflix","mrbeast","eurovision"],
+    "Soccer": ["soccer","ucl","epl","uel","la liga","laliga","premier league","serie a","champions league","champions ","real madrid","barcelona","manchester","arsenal","liverpool","bayern","paris saint-germain","psg","chelsea","tottenham","city","manchester united","manchester city","manchester fc","inter milan","ac milan","internazionale","juventus","atletico","atlético","fifa","world cup","mls","alianza","fluminense","conmebol","libertadores","lyon","benfica","galatasaray","sporting cp","ajax","feyenoord","dortmund","leverkusen","schalke","wolfsburg","bundesliga","eredivisie","ligue 1","serie b","copa","sudamericana","saudi pro","saudi pro league","fc "," fc","cf ","sc ","ud ","uefa","conference league","copa america","euro 2024","euros","chivas","america","tigres","monterrey","cruz azul","pumas","liga mx"],
+    "MLB": ["mlb","yankees","dodgers","mets","red sox","astros","cubs","cardinals","braves","phillies","padres","mariners","rangers","angels","brewers","reds","pirates","rockies","royals","tigers","twins","blue jays","guardians","nationals","marlins","orioles","rays","athletics","baseball","world series","alds","nlcs"],
+    "NHL": ["nhl","penguins","flyers","sabres","bruins","stars","wild","oilers","leafs","maple leafs","canadiens","habs","canucks","golden knights","ducks","sharks","blackhawks","capitals","senators","hurricanes","panthers nhl","lightning","jets nhl","predators","blues","avalanche","kraken","kings la","stanley cup"],
+    "Golf": ["golf","masters","pga","liv golf","ryder cup","scheffler","mcilroy","rahm","koepka","schauffele","cantlay","morikawa","spieth","justin thomas","hovland","cameron young","tony finau","tiger woods","dustin johnson","brooks","jordan spieth","collin morikawa","jon rahm","viktor hovland","xander schauffele","patrick cantlay","british open","us open golf","pga tour"],
+    "Tennis": ["tennis","atp","wta","wimbledon","french open","australian open","us open tennis","djokovic","alcaraz","sinner","medvedev","zverev","tsitsipas","rune","ruud","fritz","draper","sabalenka","swiatek","gauff","rybakina"],
+    "UFC/MMA": ["ufc","mma","jon jones","conor mcgregor","khabib","khamzat","bantamweight","lightweight","heavyweight","welterweight","featherweight","middleweight","fight night","mvp fight","nate diaz","mike perry","dustin poirier","islam makhachev","alex pereira","dricus du plessis"],
+    "Boxing": ["boxing","canelo","fury","usyk","crawford","spence","tank davis"," joshua","ortiz vs"],
+    "Cricket/Racing/Other Sports": ["cricket","ipl","f1","formula 1","grand prix","verstappen","hamilton","leclerc","norris","piastri","russell","ferrari","mclaren","red bull","racing","esports","valorant","league of legends","dota"],
+    "Politics": ["election","trump","biden","kamala","harris","president","presidential","governor","senate","congress","democrat","republican","gop","primary","poll","vote","mayor","scotus","supreme court","prime minister","parliament","starmer","sunak","macron","merkel","milei","bukele","amlo","sheinbaum","next prime","next president","next chancellor","peter magyar","magyar","hungary","hungarian","brexit","cabinet","impeach","resign","approval rating"],
+    "Geopolitics": ["russia","ukraine","china","iran","israel","hamas","gaza","palestine","palestinian","putin","zelensky","xi jinping","nato","war","ceasefire","peace deal","sanctions","tariff","tariffs","north korea","kim jong","strait of hormuz","hezbollah","houthi","syria","lebanon","taiwan","south china sea","drone strike","invasion","annex"],
+    "Macro/Fed": ["fed ","federal reserve","fomc","interest rate","interest rates","rate cut","rate hike","inflation","cpi","ppi","unemployment","jobs report","gdp","recession","powell","yellen","s&p 500","spx","stock market","crude oil","brent","wti","oil price","gas price","ath","all time high","all-time high","dow ","nasdaq","yields","treasury","bond"],
+    "Crypto": ["bitcoin","btc","ethereum"," eth","solana"," sol","xrp","dogecoin","doge","crypto","etf","halving","binance","coinbase","kraken","memecoin","stablecoin","usdc","usdt","crypto market","altcoin","ledger"],
+    "Tech/AI": ["openai","gpt","anthropic","claude","ai ","artificial intelligence","apple","google","alphabet","tesla","spacex","musk","elon","nvidia","microsoft","meta ","facebook","amazon","aws","cerebras","waymo","robotaxi","sora","llama","scaling","uber","airbnb","snowflake","datadog","palantir","ipo","launch a token","launch token","starship","robot"],
+    "Entertainment": ["oscar","grammy","emmy","movie","film","celebrity","box office","netflix","mrbeast","eurovision","stranger things","the bear","succession","taylor swift","beyonce","drake","kendrick","spotify","top song","streaming","disney","tv show","sequel","release","hbo","prime video","apple tv"],
+    "Weather/Disasters": ["hurricane","storm","earthquake","wildfire","flood","heatwave","temperature","weather"],
 }
 
 
 def categorize_market(title: str) -> str:
-    """Clasifica un mercado a una categoría canónica basada en keywords del título."""
+    """Clasifica un mercado a una categoría canónica basada en keywords del título.
+
+    Returns "Other" si ninguna keyword matchea. Sustring match en lowercase.
+    Las wallets que aceptan "Other" en alert_categories captarán los no clasificados
+    (útil para no perder señales mientras expandimos el diccionario).
+    """
     if not title:
         return "Other"
     t = title.lower()

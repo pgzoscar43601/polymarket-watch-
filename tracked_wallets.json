@@ -5,10 +5,10 @@
     "category": "sports",
     "enabled": true,
     "alert_side": "BUY",
-    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Tennis/UFC"],
+    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Golf","Tennis","UFC/MMA","Boxing","Cricket/Racing/Other Sports"],
     "alert_min_size_usdc": 0,
     "alert_new_market_min_usdc": 0,
-    "note": "APOSTADOR. Tu wallet. Regla: cualquier compra en deportes"
+    "note": "APOSTADOR. Tu wallet. Regla: cualquier compra en deportes (todos los deportes)"
   },
   {
     "address": "0x492442eab586f242b53bda933fd5de859c8a3782",
@@ -16,10 +16,10 @@
     "category": "sports",
     "enabled": true,
     "alert_side": "BUY",
-    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Tennis/UFC"],
+    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Golf","Tennis","UFC/MMA","Boxing","Cricket/Racing/Other Sports"],
     "alert_min_size_usdc": 5000,
     "alert_new_market_min_usdc": 5000,
-    "note": "TRADER. Regla: BUY > $5,000 en deportes"
+    "note": "TRADER. Regla: BUY > $5,000 en deportes (todos los deportes)"
   },
   {
     "address": "0xdb27bf2ac5d428a9c63dbc914611036855a6c56e",
@@ -27,10 +27,10 @@
     "category": "sports",
     "enabled": true,
     "alert_side": "BUY",
-    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Tennis/UFC"],
+    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Golf","Tennis","UFC/MMA","Boxing","Cricket/Racing/Other Sports"],
     "alert_min_size_usdc": 0,
     "alert_new_market_min_usdc": 0,
-    "note": "APOSTADOR. Regla: cualquier compra en deportes"
+    "note": "APOSTADOR. Regla: cualquier compra en deportes (todos los deportes)"
   },
   {
     "address": "0xed107a85a4585a381e48c7f7ca4144909e7dd2e5",
@@ -41,7 +41,7 @@
     "alert_categories": ["Politics","Geopolitics","Macro/Fed"],
     "alert_min_size_usdc": 1500,
     "alert_new_market_min_usdc": 1500,
-    "note": "APOSTADOR. Regla: BUY > $1,500 en política/geopolítica/macro"
+    "note": "APOSTADOR. Regla: BUY > $1,500 en política/geopolítica/macro (no incluye tech/entertainment que también tradea)"
   },
   {
     "address": "0x6a72f61820b26b1fe4d956e17b6dc2a1ea3033ee",
