@@ -1,9 +1,10 @@
 name: polymarket-watch
 
-# Corre cada hora en punto. También permite trigger manual desde la pestaña Actions de GitHub.
+# Corre cada 5 minutos. Solo posible en repo público (free tier ilimitado).
+# También permite trigger manual desde la pestaña Actions de GitHub.
 on:
   schedule:
-    - cron: "0 * * * *"   # cada hora UTC
+    - cron: "*/5 * * * *"   # cada 5 min UTC
   workflow_dispatch: {}
 
 permissions:
