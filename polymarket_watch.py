@@ -184,9 +184,20 @@ def build_alert_msg(wallet_nick: str, trade: dict, kind: str, usd: float) -> str
 
 
 def process_wallet(wallet: dict, state_w: dict, first_run: bool) -> tuple[list[str], dict]:
-    """Returns (alerts, updated_state_w)."""
+    """Returns (alerts, updated_state_w).
+
+    Bootstrap rules:
+    - first_run = True: no alerts for ANY wallet (system-wide first run)
+    - first_run = False but state_w is empty: no alerts for THIS wallet
+      (wallet just added to tracked_wallets.json — bootstrap individually
+      to avoid spamming 200 historic trades)
+    """
     address = wallet["address"].lower()
     nick = wallet.get("nick") or short_addr(address)
+
+    # If state_w has no seen_tx key it's brand new → bootstrap silently
+    is_new_wallet = "seen_tx" not in state_w
+    bootstrap = first_run or is_new_wallet
 
     try:
         trades = fetch_trades(address)
@@ -202,6 +213,9 @@ def process_wallet(wallet: dict, state_w: dict, first_run: bool) -> tuple[list[s
     new_seen_tx = list(seen_tx)
     new_seen_markets = list(seen_markets)
     alerts: list[str] = []
+
+    if bootstrap and not first_run:
+        print(f"[INFO] {nick}: new wallet, bootstrapping silently ({len(trades)} historic trades)")
 
     # Sort oldest -> newest so notifications arrive in chronological order
     trades_sorted = sorted(trades, key=lambda t: t.get("timestamp", 0))
@@ -220,8 +234,8 @@ def process_wallet(wallet: dict, state_w: dict, first_run: bool) -> tuple[list[s
         new_seen_tx.append(tx)
         usd = usdc_value(t)
 
-        # Skip emitting alerts on first run (we just bootstrap state)
-        if first_run:
+        # Bootstrap: just record state, no alerts
+        if bootstrap:
             if condition_id and condition_id not in seen_markets:
                 new_seen_markets.append(condition_id)
                 seen_markets.add(condition_id)
@@ -266,6 +280,14 @@ def main() -> int:
             )
         except Exception as e:  # noqa: BLE001
             print(f"[WARN] hello msg failed: {e}", file=sys.stderr)
+
+    # Prune state for wallets no longer tracked (keeps state.json clean)
+    tracked_addrs = {w["address"].lower() for w in wallets}
+    removed = [a for a in state["wallets"] if a not in tracked_addrs]
+    for a in removed:
+        del state["wallets"][a]
+    if removed:
+        print(f"[INFO] pruned {len(removed)} wallets no longer tracked: {', '.join(short_addr(a) for a in removed)}")
 
     all_alerts: list[str] = []
     for w in wallets:
