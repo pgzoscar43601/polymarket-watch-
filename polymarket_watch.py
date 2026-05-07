@@ -191,9 +191,17 @@ def process_wallet(wallet: dict, state_w: dict, first_run: bool) -> tuple[list[s
     - first_run = False but state_w is empty: no alerts for THIS wallet
       (wallet just added to tracked_wallets.json — bootstrap individually
       to avoid spamming 200 historic trades)
+
+    Per-wallet thresholds:
+    - wallet["alert_min_size_usdc"]: override BIG_TRADE threshold for this wallet.
+      Falls back to global ALERT_MIN_SIZE_USDC env var.
+    - wallet["alert_new_market_min_usdc"]: override NEW_MARKET threshold.
+      Falls back to global ALERT_NEW_MARKET_MIN_USDC env var.
     """
     address = wallet["address"].lower()
     nick = wallet.get("nick") or short_addr(address)
+    big_threshold = float(wallet.get("alert_min_size_usdc", ALERT_MIN_SIZE_USDC))
+    new_market_threshold = float(wallet.get("alert_new_market_min_usdc", ALERT_NEW_MARKET_MIN_USDC))
 
     # If state_w has no seen_tx key it's brand new → bootstrap silently
     is_new_wallet = "seen_tx" not in state_w
@@ -242,11 +250,11 @@ def process_wallet(wallet: dict, state_w: dict, first_run: bool) -> tuple[list[s
             continue
 
         triggered = []
-        if usd >= ALERT_MIN_SIZE_USDC:
+        if usd >= big_threshold:
             triggered.append(("BIG_TRADE", usd))
 
         new_market = bool(condition_id) and condition_id not in seen_markets
-        if new_market and usd >= ALERT_NEW_MARKET_MIN_USDC:
+        if new_market and usd >= new_market_threshold:
             triggered.append(("NEW_MARKET", usd))
 
         for kind, amount in triggered:
@@ -261,6 +269,7 @@ def process_wallet(wallet: dict, state_w: dict, first_run: bool) -> tuple[list[s
     state_w["seen_markets"] = new_seen_markets[-1000:]
     state_w["last_seen_at"] = utc_now_iso()
     state_w["last_trade_count"] = len(trades_sorted)
+    state_w["alert_min_size_usdc"] = big_threshold
 
     return alerts, state_w
 

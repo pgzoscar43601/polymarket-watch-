@@ -3,60 +3,80 @@
     "address": "0xbddf61af533ff524d27154e589d2d7a81510c684",
     "nick": "Oscar (Countryside)",
     "category": "sports",
-    "note": "Tu wallet. Banca ~$638k, sports puro (NBA + UCL + NFL + EPL + UEL + World Cup), $14.4M PnL all-time"
+    "alert_min_size_usdc": 5000,
+    "alert_new_market_min_usdc": 1000,
+    "note": "Tu wallet. Banca ~$637k. Threshold $5k ≈ median bet, captura picks reales (~10/dia)"
   },
   {
     "address": "0x492442eab586f242b53bda933fd5de859c8a3782",
     "nick": "Sharp 4924 (Multicolored-Self)",
     "category": "sports",
-    "note": "Banca ~$142k pero VOL 30d $10.6M (la más activa del mundo en sports). NBA + NHL pesado, bets de $400-700k"
+    "alert_min_size_usdc": 20000,
+    "alert_new_market_min_usdc": 5000,
+    "note": "Sharp NBA+NHL. Banca ~$160k. Median $14k. Threshold $20k filtra livianos (~30-50/dia)"
   },
   {
     "address": "0x507e52ef684ca2dd91f90a9d26d149dd3288beae",
     "nick": "Sports Whale 507e",
     "category": "sports",
-    "note": "Banca ~$3.4M, 73% sports. PnL all-time $76M"
+    "alert_min_size_usdc": 1000,
+    "alert_new_market_min_usdc": 500,
+    "note": "Banca $3.4M pero casi todo en bets micro (median $57). Threshold $1k captura los raros >>(~17/dia)"
   },
   {
     "address": "0x53757615de1c42b83f893b79d4241a009dc2aeea",
     "nick": "Pure Sports 5375",
     "category": "sports",
-    "note": "Banca ~$1.28M, 100% sports. PnL all-time sports $47.9M"
+    "alert_min_size_usdc": 5000,
+    "alert_new_market_min_usdc": 1000,
+    "note": "Sports puro NBA+MLB. Banca $1.28M. Median $202. $5k captura solo bets grandes (~20/dia)"
   },
   {
     "address": "0xdb27bf2ac5d428a9c63dbc914611036855a6c56e",
     "nick": "Sports Active db27",
     "category": "sports",
-    "note": "Banca ~$230k, vol 30d $651k, 77% sports. PnL YTD $30M"
+    "alert_min_size_usdc": 20000,
+    "alert_new_market_min_usdc": 5000,
+    "note": "Sharp NBA. Banca $231k. Median $5k. $20k captura los serios (~50/dia)"
   },
   {
     "address": "0xed107a85a4585a381e48c7f7ca4144909e7dd2e5",
     "nick": "Politics Sharp ed10 (Flashy-Label)",
     "category": "politics_geopolitics",
-    "note": "Banca ~$9.29M, sharp política/geopolítica. Mega-bets como $4.5M en US-Iran ceasefire"
+    "alert_min_size_usdc": 100000,
+    "alert_new_market_min_usdc": 25000,
+    "note": "Banca $9.3M. Mega-bets geopolitica. $100k = 1% banca = solo mega convicción (~1-2/dia)"
   },
   {
     "address": "0xead152b855effa6b5b5837f53b24c0756830c76a",
-    "nick": "Diversified ead1",
+    "nick": "Diversified ead1 (BOT/MAKER)",
     "category": "mixed",
-    "note": "Banca ~$871k, vol 30d $306k. Mercados raros / entertainment / novelties"
+    "alert_min_size_usdc": 10000,
+    "alert_new_market_min_usdc": 5000,
+    "note": "BOT/MAKER, 8500 fills/dia. Banca $873k. p99=$4.7k. $10k captura top 0.5% (~30/dia)"
   },
   {
     "address": "0x6a72f61820b26b1fe4d956e17b6dc2a1ea3033ee",
     "nick": "Sports Active 6a72",
     "category": "sports",
-    "note": "Banca ~$442k, vol 30d $524k, 88% sports"
+    "alert_min_size_usdc": 10000,
+    "alert_new_market_min_usdc": 2000,
+    "note": "NHL+NBA. Banca $467k. Median $676. $10k = 15x avg = solo grandes (~30/dia)"
   },
   {
     "address": "0x204f72f35326db932158cba6adff0b9a1da95e14",
-    "nick": "Top1 Human 204f (Frail-Possible)",
+    "nick": "Top1 Human 204f (Frail-Possible) (BOT)",
     "category": "mixed",
-    "note": "Banca ~$237k, mixto (NBA + Política + Soccer). Top humano histórico, ahora menos activo"
+    "alert_min_size_usdc": 2000,
+    "alert_new_market_min_usdc": 500,
+    "note": "BOT MASIVO 22k fills/dia. Banca $257k. Avg $196. $2k = 10x avg = solo fuera de patrón (~10-20/dia)"
   },
   {
     "address": "0xd218e474776403a330142299f7796e8ba32eb5c9",
-    "nick": "System d218 (Attentive-Crewman)",
+    "nick": "System d218 (Attentive-Crewman) (BOT)",
     "category": "mixed",
-    "note": "Banca ~$206k, diversificado 50% sports / 50% otros (incluyendo cosas raras como Eurovision)"
+    "alert_min_size_usdc": 1000,
+    "alert_new_market_min_usdc": 250,
+    "note": "BOT 4k fills/dia. Banca $206k. Avg $118. $1k = 8x avg = señales fuera de patrón (~10/dia)"
   }
 ]
