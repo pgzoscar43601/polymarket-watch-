@@ -228,11 +228,21 @@ def build_alert_msg(wallet_nick: str, trade: dict, kind: str, usd: float) -> str
         "NEW_MARKET": "🆕",
     }.get(kind, "•")
 
+    # Identidad de Polymarket del trader (name + pseudonym de la API)
+    pm_name = (trade.get("name") or "").strip()
+    pm_pseudo = (trade.get("pseudonym") or "").strip()
+    identity_parts = []
+    if pm_name: identity_parts.append(pm_name)
+    if pm_pseudo and pm_pseudo != pm_name: identity_parts.append(f'"{pm_pseudo}"')
+    pm_identity = " · ".join(identity_parts) if identity_parts else ""
+
     # ---- header ----
     parts = [
         f"{icon} <b>{wallet_nick}</b> {side} {fmt_usd(usd)} @ {price:.3f}",
-        f"<i>{title}</i>",
     ]
+    if pm_identity:
+        parts.append(f"👤 Polymarket: <b>{pm_identity}</b>")
+    parts.append(f"<i>{title}</i>")
     if outcome:
         parts.append(f"Apostando a: <b>{outcome}</b>")
     if ts_str:
