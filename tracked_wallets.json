@@ -4,11 +4,11 @@
     "nick": "Oscar (Countryside)",
     "category": "sports",
     "enabled": true,
-    "alert_side": "BUY",
+    "alert_side": "",
     "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Golf","Tennis","UFC/MMA","Boxing","Cricket/Racing/Other Sports"],
     "alert_min_size_usdc": 0,
     "alert_new_market_min_usdc": 0,
-    "note": "APOSTADOR. Tu wallet. Regla: cualquier compra en deportes (todos los deportes)"
+    "note": "APOSTADOR. Tu wallet. Regla: BUY y SELL en deportes (todos los deportes) — actualizado 2026-05-15 para ver cierres de posiciones"
   },
   {
     "address": "0x492442eab586f242b53bda933fd5de859c8a3782",
