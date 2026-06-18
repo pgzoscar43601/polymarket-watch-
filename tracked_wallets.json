@@ -55,11 +55,92 @@
     "note": "APOSTADOR. Regla: cualquier compra NBA/NHL"
   },
   {
+    "address": "0xed64a7bf029040aa331abc87902434d815ef217d",
+    "nick": "WC Sharp 341% (ed64)",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["Soccer"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 SHARP #1 por ROI. +$16.5M PnL / $4.8M invertido / ROI 341% (fase grupos, mark-to-market). BUY+SELL, todo monto, solo Soccer. Agregado 2026-06-18."
+  },
+  {
+    "address": "0x96cfcb0c30942cfcd1cdf76c7d408794d66b1acb",
+    "nick": "WC Sharp 205% (96cf)",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["Soccer"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 SHARP. +$18.2M PnL / $8.9M invertido / ROI 205% (fase grupos, mark-to-market). BUY+SELL, todo monto, solo Soccer. Agregado 2026-06-18."
+  },
+  {
+    "address": "0x89dd49bf87c41be422927372a0b75c6ab577f662",
+    "nick": "WC Sharp 162% (89dd)",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["Soccer"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 SHARP. +$2.08M PnL / $1.3M invertido / ROI 162% (fase grupos, mark-to-market). BUY+SELL, todo monto, solo Soccer. Agregado 2026-06-18."
+  },
+  {
+    "address": "0x97cb27132b9dd66a2ef49390893cbeb26c3fe4d0",
+    "nick": "WC Sharp 147% (97cb)",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["Soccer"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 SHARP. +$1.56M PnL / $1.06M invertido / ROI 147% (fase grupos, mark-to-market). BUY+SELL, todo monto, solo Soccer. Agregado 2026-06-18."
+  },
+  {
+    "address": "0x5e4c3b5b81171e2ca4ab776ac0d6bba787f9dba2",
+    "nick": "WC Sharp 146% (5e4c)",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["Soccer"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 SHARP. +$9.4M PnL / $6.4M invertido / ROI 146% (fase grupos, mark-to-market). BUY+SELL, todo monto, solo Soccer. Agregado 2026-06-18."
+  },
+  {
+    "address": "0x81da605d7dac06478367ed1bae0593b7791ca109",
+    "nick": "WC Sharp 116% (81da)",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["Soccer"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 SHARP. +$1.17M PnL / $1.0M invertido / ROI 116% (fase grupos, mark-to-market). BUY+SELL, todo monto, solo Soccer. Agregado 2026-06-18."
+  },
+  {
+    "address": "0x2c335066fe58fe9237c3d3dc7b275c2a034a0563",
+    "nick": "WC Whale 2c33 (ROI 4%)",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["Soccer"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 BALLENA. +$2.2M PnL pero $50.2M invertido / ROI solo 4%. Mueve mucho dinero, poco edge — vigilar tamaño, no copiar ciegamente. BUY+SELL, todo monto, solo Soccer. Agregado 2026-06-18."
+  },
+  {
     "address": "0x204f72f35326db932158cba6adff0b9a1da95e14",
-    "nick": "Top1 Human 204f",
-    "category": "mixed",
-    "enabled": false,
-    "note": "MAKER — bajo vigilancia, sin alertas. State se mantiene"
+    "nick": "WC Whale 204f (ROI 4%)",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["Soccer"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 BALLENA/MAKER. +$1.9M PnL pero $53.3M invertido / ROI 4%. Antes marcada MAKER sin alertas; reactivada 2026-06-18 a pedido para vigilar su actividad en el Mundial. CUIDADO: comportamiento de maker, no copiar ciegamente. BUY+SELL, todo monto, solo Soccer."
   },
   {
     "address": "0x53757615de1c42b83f893b79d4241a009dc2aeea",
