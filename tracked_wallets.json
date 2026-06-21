@@ -133,14 +133,14 @@
   },
   {
     "address": "0x0346afae2603313d2bbee96b628536c8cbe352a5",
-    "nick": "WC ROBUSTO 0346 +48% $3.1M",
+    "nick": "WC MM 0346 (no copiar neto)",
     "category": "sports",
     "enabled": true,
     "alert_side": "",
     "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Golf","Tennis","UFC/MMA","Boxing","Cricket/Racing/Other Sports"],
-    "alert_min_size_usdc": 0,
-    "alert_new_market_min_usdc": 0,
-    "note": "WC2026 TOP ESCALA. +$1.52M PnL / $3.14M / 46 mercados / ROI +48% MtM. Skill a gran escala (no ballena tonta), activo 21-jun. BUY+SELL, todo monto, TODOS deportes. Agregado 2026-06-21."
+    "alert_min_size_usdc": 50000,
+    "alert_new_market_min_usdc": 50000,
+    "note": "WC2026 MARKET-MAKER (CORREGIDO 21-jun). Cotiza AMBOS lados de cada outcome (6 mercados/juego) = NO es tipster, gana spread. +$1.52M/$3.14M pero su neto NO se copia. Alerta solo >$50k para ver movimientos grandes. Mismo perfil que ballenas 4% (este rentable)."
   },
   {
     "address": "0x5966db1fe50763c9e3c014d756369bad07e1f804",
