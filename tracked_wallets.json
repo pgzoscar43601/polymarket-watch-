@@ -198,6 +198,83 @@
     "note": "WC2026 GANADOR GRANDE. +$2.9M PnL / $2.49M / solo 2 mercados / ROI +117% MtM. CUIDADO: concentrado (pocas apuestas, posible suerte) - vigilar tamano. BUY+SELL, todo monto, TODOS deportes. Agregado 2026-06-21."
   },
   {
+    "address": "0x3f87d51f27ba6e19ec52aaeebb68559a839c742c",
+    "nick": "WC ELITE 3f87 +$15M",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Golf","Tennis","UFC/MMA","Boxing","Cricket/Racing/Other Sports"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 ELITE. PnL REALIZADO +$15.0M, direccional puro (1.0). #2 del Mundial por dinero real. Se nos habia escapado (ranking MtM lo enterraba). Agregado 2026-06-21."
+  },
+  {
+    "address": "0xbc11a64ab34a03a043fbe80598fa065ee87eeec6",
+    "nick": "WC ELITE bc11 +$12.7M",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Golf","Tennis","UFC/MMA","Boxing","Cricket/Racing/Other Sports"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 ELITE. PnL REALIZADO +$12.7M, direccional (0.98). #4 del Mundial por dinero real. Agregado 2026-06-21."
+  },
+  {
+    "address": "0xcfb69f94b3764e75228515ad9d169570d5f906da",
+    "nick": "WC SHARP cfb6 +$2.1M",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Golf","Tennis","UFC/MMA","Boxing","Cricket/Racing/Other Sports"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 SHARP. PnL realizado +$2.14M, direccional PURO (1.0). Agregado 2026-06-21."
+  },
+  {
+    "address": "0x8cb4ca5af7d9361322340bb307a828d288c91057",
+    "nick": "WC SHARP 8cb4 +$1.9M",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Golf","Tennis","UFC/MMA","Boxing","Cricket/Racing/Other Sports"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 SHARP. PnL realizado +$1.92M, direccional PURO (1.0). Agregado 2026-06-21."
+  },
+  {
+    "address": "0x4761ecf3578e388a9b16c43f874efe32ee855ae8",
+    "nick": "WC SHARP 4761 +$1.3M",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Golf","Tennis","UFC/MMA","Boxing","Cricket/Racing/Other Sports"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 SHARP. PnL realizado +$1.28M, direccional (0.99). Agregado 2026-06-21."
+  },
+  {
+    "address": "0x198a38b9704cf3a5ed321f28c8a7836559676762",
+    "nick": "WC SHARP 198a +$1.1M",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Golf","Tennis","UFC/MMA","Boxing","Cricket/Racing/Other Sports"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 SHARP. PnL realizado +$1.14M, direccional PURO (1.0). Agregado 2026-06-21."
+  },
+  {
+    "address": "0x8c74b4eef9a894433b8126aa11d1345efb2b0488",
+    "nick": "WC WATCH GoalLineGhost",
+    "category": "sports",
+    "enabled": true,
+    "alert_side": "",
+    "alert_categories": ["NBA","NFL","MLB","NHL","Soccer","Golf","Tennis","UFC/MMA","Boxing","Cricket/Racing/Other Sports"],
+    "alert_min_size_usdc": 0,
+    "alert_new_market_min_usdc": 0,
+    "note": "WC2026 WATCH. Apostador direccional (single-side), $1.3M en posiciones, mayor win $59.7K. PERO casi todo en posiciones ABIERTAS = sin track record realizado todavia (no esta en top-30 por dinero real). Vigilar, confirmar ROI cuando resuelvan sus apuestas. Agregado 2026-06-21."
+  },
+  {
     "address": "0x53757615de1c42b83f893b79d4241a009dc2aeea",
     "nick": "Pure Sports 5375",
     "category": "sports",
