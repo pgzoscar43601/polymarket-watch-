@@ -121,28 +121,6 @@
     "note": "WC2026 SHARP. +$1.17M PnL / $1.0M invertido / ROI 116% (fase grupos, mark-to-market). BUY+SELL, todo monto, solo Soccer. Agregado 2026-06-18."
   },
   {
-    "address": "0x2c335066fe58fe9237c3d3dc7b275c2a034a0563",
-    "nick": "WC Whale 2c33 (ROI 4%)",
-    "category": "sports",
-    "enabled": true,
-    "alert_side": "",
-    "alert_categories": ["Soccer"],
-    "alert_min_size_usdc": 0,
-    "alert_new_market_min_usdc": 0,
-    "note": "WC2026 BALLENA. +$2.2M PnL pero $50.2M invertido / ROI solo 4%. Mueve mucho dinero, poco edge — vigilar tamaño, no copiar ciegamente. BUY+SELL, todo monto, solo Soccer. Agregado 2026-06-18."
-  },
-  {
-    "address": "0x204f72f35326db932158cba6adff0b9a1da95e14",
-    "nick": "WC Whale 204f (ROI 4%)",
-    "category": "sports",
-    "enabled": true,
-    "alert_side": "",
-    "alert_categories": ["Soccer"],
-    "alert_min_size_usdc": 0,
-    "alert_new_market_min_usdc": 0,
-    "note": "WC2026 BALLENA/MAKER. +$1.9M PnL pero $53.3M invertido / ROI 4%. Antes marcada MAKER sin alertas; reactivada 2026-06-18 a pedido para vigilar su actividad en el Mundial. CUIDADO: comportamiento de maker, no copiar ciegamente. BUY+SELL, todo monto, solo Soccer."
-  },
-  {
     "address": "0x53757615de1c42b83f893b79d4241a009dc2aeea",
     "nick": "Pure Sports 5375",
     "category": "sports",
