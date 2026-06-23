@@ -23,8 +23,12 @@ Per-wallet config (tracked_wallets.json):
   enabled                     - bool, default true
   alert_side                  - "BUY"/"SELL", default ambos
   alert_categories            - lista, default todas
-  alert_min_size_usdc         - float, default ALERT_MIN_SIZE_USDC
+  alert_min_size_usdc         - float, default ALERT_MIN_SIZE_USDC (umbral por-fill; subir alto = solo whale)
   alert_new_market_min_usdc   - float, default ALERT_NEW_MARKET_MIN_USDC
+  alert_position_usd          - float, floor de POSICIÓN ACUMULADA. Alerta cuando la
+                                posición del wallet en un mercado cruza niveles del
+                                POSITION_LADDER >= este floor (anti-saturación: 1 alerta
+                                por cruce, no por cada fill chiquito). default ALERT_POSITION_USD.
 """
 
 from __future__ import annotations
@@ -56,6 +60,11 @@ TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 ALERT_MIN_SIZE_USDC = float(os.environ.get("ALERT_MIN_SIZE_USDC", "50000"))
 ALERT_NEW_MARKET_MIN_USDC = float(os.environ.get("ALERT_NEW_MARKET_MIN_USDC", "10000"))
+# Alertas por POSICIÓN ACUMULADA (no por fill): captura a los que arman posiciones
+# grandes con muchas compras chiquitas, sin saturar. Floor por-wallet en JSON
+# (alert_position_usd); ladder de niveles a los que se notifica al cruzar.
+ALERT_POSITION_USD = float(os.environ.get("ALERT_POSITION_USD", "10000"))
+POSITION_LADDER = [10000, 25000, 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000]
 GMAIL_USER = os.environ.get("GMAIL_USER", "").strip()
 GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "").strip()
 GMAIL_TO = os.environ.get("GMAIL_TO", GMAIL_USER).strip()
@@ -136,6 +145,33 @@ def fetch_trades(address: str, limit: int = POLY_TRADES_LIMIT) -> list[dict]:
     r.raise_for_status()
     data = r.json()
     return data if isinstance(data, list) else []
+
+
+def fetch_positions(address: str, limit: int = 500) -> list[dict]:
+    """Posiciones ABIERTAS actuales del wallet (agrega los fills en una posición)."""
+    r = requests.get(
+        f"{POLY_API}/positions",
+        params={"user": address, "limit": limit, "sizeThreshold": 1},
+        headers=UA,
+        timeout=30,
+    )
+    r.raise_for_status()
+    data = r.json()
+    return data if isinstance(data, list) else []
+
+
+def position_value(p: dict) -> float:
+    try:
+        return float(p.get("currentValue") or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def position_shares(p: dict) -> float:
+    try:
+        return float(p.get("size") or 0)
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def usdc_value(trade: dict) -> float:
@@ -274,6 +310,84 @@ def build_alert_msg(wallet_nick: str, trade: dict, kind: str, usd: float) -> str
     return "\n".join(parts)
 
 
+def build_position_alert_msg(nick: str, p: dict, kind: str, level: float, value: float, peak: float = 0.0) -> str:
+    title = p.get("title", "(unknown market)")
+    outcome = p.get("outcome", "")
+    slug = p.get("slug") or p.get("eventSlug") or ""
+    url = f"https://polymarket.com/event/{slug}" if slug else ""
+    pm_name = (p.get("name") or "").strip()
+    pm_pseudo = (p.get("pseudonym") or "").strip()
+    ident = " · ".join([x for x in [pm_name, f'"{pm_pseudo}"' if pm_pseudo and pm_pseudo != pm_name else ""] if x])
+    if kind == "BUILD":
+        head = f"📈 <b>{nick}</b> posición {fmt_usd(level)}+ en mercado"
+    else:  # REDUCE
+        head = f"📉 <b>{nick}</b> REDUCE posición (pico {fmt_usd(peak)} → {fmt_usd(value)})"
+    parts = [head]
+    if ident:
+        parts.append(f"👤 Polymarket: <b>{ident}</b>")
+    parts.append(f"<i>{title}</i>")
+    if outcome:
+        parts.append(f"Apostando a: <b>{outcome}</b>")
+    parts.append(f"valor actual de la posición: {fmt_usd(value)}")
+    if url:
+        parts.append(f'<a href="{url}">→ ver mercado</a>')
+    parts.append("")
+    parts.append("📖 <i>Posición acumulada (suma de sus compras), no un solo trade.</i>")
+    return "\n".join(parts)
+
+
+def process_positions(wallet: dict, state_w: dict, bootstrap: bool, enabled: bool, nick: str, address: str) -> list[str]:
+    """Alertas por POSICIÓN ACUMULADA: cruce de niveles (BUILD) y venta fuerte (REDUCE).
+
+    Estado por asset: {lvl: nivel más alto ya alertado, peak_val, peak_sh}.
+    Bootstrap o disabled => solo registra niveles, no alerta.
+    """
+    floor = float(wallet.get("alert_position_usd", ALERT_POSITION_USD))
+    # primera vez que corremos posiciones para este wallet => bootstrap silencioso
+    # (aunque ya tenga seen_tx de la versión vieja) para no soltar una ráfaga inicial
+    pos_bootstrap = bootstrap or ("positions" not in state_w)
+    pos_state = state_w.get("positions", {})
+    try:
+        positions = fetch_positions(address)
+    except Exception as e:  # noqa: BLE001
+        print(f"[WARN] {nick}: positions fetch fail: {e}", file=sys.stderr)
+        return []
+    alerts: list[str] = []
+    cur = set()
+    for p in positions:
+        asset = str(p.get("asset") or "")
+        if not asset:
+            continue
+        cur.add(asset)
+        val = position_value(p)
+        sh = position_shares(p)
+        ps = pos_state.get(asset, {"lvl": 0, "peak_val": 0.0, "peak_sh": 0.0})
+        ps["peak_val"] = max(ps.get("peak_val", 0.0), val)
+        ps["peak_sh"] = max(ps.get("peak_sh", 0.0), sh)
+        # BUILD: el FLOOR es el primer nivel de alerta; arriba siguen los del ladder.
+        ladder = [floor] + [L for L in POSITION_LADDER if L > floor]
+        levels = [L for L in ladder if val >= L]
+        top = levels[-1] if levels else 0
+        if (not pos_bootstrap) and enabled and top > ps.get("lvl", 0):
+            alerts.append(build_position_alert_msg(nick, p, "BUILD", top, val))
+        ps["lvl"] = max(ps.get("lvl", 0), top)
+        # REDUCE: vendió >=50% de las shares de una posición que fue grande (>= floor)
+        if (not pos_bootstrap) and enabled and ps.get("peak_val", 0) >= floor \
+           and ps.get("peak_sh", 0) > 0 and sh <= 0.5 * ps["peak_sh"] and not ps.get("reduce_done"):
+            alerts.append(build_position_alert_msg(nick, p, "REDUCE", ps["lvl"], val, ps["peak_val"]))
+            ps["reduce_done"] = True
+        pos_state[asset] = ps
+    # posiciones desaparecidas (resueltas/cerradas) => limpiar del estado sin alertar (resolución = ruido)
+    for asset in list(pos_state.keys()):
+        if asset not in cur:
+            del pos_state[asset]
+    # cap de tamaño
+    if len(pos_state) > 1500:
+        pos_state = dict(sorted(pos_state.items(), key=lambda kv: kv[1].get("peak_val", 0), reverse=True)[:1500])
+    state_w["positions"] = pos_state
+    return alerts
+
+
 def process_wallet(wallet: dict, state_w: dict, first_run: bool) -> tuple[list[str], dict]:
     """Returns (alerts, updated_state_w).
 
@@ -376,6 +490,9 @@ def process_wallet(wallet: dict, state_w: dict, first_run: bool) -> tuple[list[s
         if condition_id and condition_id not in seen_markets:
             new_seen_markets.append(condition_id)
             seen_markets.add(condition_id)
+
+    # Alertas por POSICIÓN ACUMULADA (señal principal anti-saturación)
+    alerts.extend(process_positions(wallet, state_w, bootstrap, enabled, nick, address))
 
     # Cap state size to last 2000 tx and 1000 markets per wallet
     state_w["seen_tx"] = new_seen_tx[-2000:]

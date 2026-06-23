@@ -5,3 +5,5 @@ venv/
 .DS_Store
 .env
 .env.local
+tracked_wallets.json.bak*
+*.bak*
