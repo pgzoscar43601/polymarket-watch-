@@ -199,6 +199,11 @@ def trade_event_url(trade: dict) -> str:
     return f"https://polymarket.com/event/{slug}" if slug else ""
 
 
+def profile_url(address: str, p: dict | None = None) -> str:
+    addr = (address or (p.get("proxyWallet") if p else "") or "").strip()
+    return f"https://polymarket.com/profile/{addr}" if addr else ""
+
+
 def send_telegram(text: str) -> bool:
     if not TG_TOKEN or not TG_CHAT:
         print("[ERROR] TELEGRAM_BOT_TOKEN/CHAT_ID not set", file=sys.stderr)
@@ -243,7 +248,7 @@ def append_alert_log(line: str) -> None:
         f.write(line + "\n")
 
 
-def build_alert_msg(wallet_nick: str, trade: dict, kind: str, usd: float) -> str:
+def build_alert_msg(wallet_nick: str, trade: dict, kind: str, usd: float, address: str = "") -> str:
     title = trade.get("title", "(unknown market)")
     outcome = trade.get("outcome", "")
     side = (trade.get("side") or "?").upper()
@@ -285,6 +290,9 @@ def build_alert_msg(wallet_nick: str, trade: dict, kind: str, usd: float) -> str
         parts.append(ts_str)
     if url:
         parts.append(f'<a href="{url}">→ ver mercado</a>')
+    prof = profile_url(address, trade)
+    if prof:
+        parts.append(f'<a href="{prof}">👤 ver perfil del trader en Polymarket</a>')
 
     # ---- explicación didáctica ----
     parts.append("")  # línea en blanco
@@ -310,7 +318,7 @@ def build_alert_msg(wallet_nick: str, trade: dict, kind: str, usd: float) -> str
     return "\n".join(parts)
 
 
-def build_position_alert_msg(nick: str, p: dict, kind: str, level: float, value: float, peak: float = 0.0) -> str:
+def build_position_alert_msg(nick: str, p: dict, kind: str, level: float, value: float, peak: float = 0.0, address: str = "") -> str:
     title = p.get("title", "(unknown market)")
     outcome = p.get("outcome", "")
     slug = p.get("slug") or p.get("eventSlug") or ""
@@ -331,6 +339,9 @@ def build_position_alert_msg(nick: str, p: dict, kind: str, level: float, value:
     parts.append(f"valor actual de la posición: {fmt_usd(value)}")
     if url:
         parts.append(f'<a href="{url}">→ ver mercado</a>')
+    prof = profile_url(address, p)
+    if prof:
+        parts.append(f'<a href="{prof}">👤 ver perfil del trader en Polymarket</a>')
     parts.append("")
     parts.append("📖 <i>Posición acumulada (suma de sus compras), no un solo trade.</i>")
     return "\n".join(parts)
@@ -369,12 +380,12 @@ def process_positions(wallet: dict, state_w: dict, bootstrap: bool, enabled: boo
         levels = [L for L in ladder if val >= L]
         top = levels[-1] if levels else 0
         if (not pos_bootstrap) and enabled and top > ps.get("lvl", 0):
-            alerts.append(build_position_alert_msg(nick, p, "BUILD", top, val))
+            alerts.append(build_position_alert_msg(nick, p, "BUILD", top, val, address=address))
         ps["lvl"] = max(ps.get("lvl", 0), top)
         # REDUCE: vendió >=50% de las shares de una posición que fue grande (>= floor)
         if (not pos_bootstrap) and enabled and ps.get("peak_val", 0) >= floor \
            and ps.get("peak_sh", 0) > 0 and sh <= 0.5 * ps["peak_sh"] and not ps.get("reduce_done"):
-            alerts.append(build_position_alert_msg(nick, p, "REDUCE", ps["lvl"], val, ps["peak_val"]))
+            alerts.append(build_position_alert_msg(nick, p, "REDUCE", ps["lvl"], val, ps["peak_val"], address=address))
             ps["reduce_done"] = True
         pos_state[asset] = ps
     # posiciones desaparecidas (resueltas/cerradas) => limpiar del estado sin alertar (resolución = ruido)
@@ -485,7 +496,7 @@ def process_wallet(wallet: dict, state_w: dict, first_run: bool) -> tuple[list[s
             triggered.append(("NEW_MARKET", usd))
 
         for kind, amount in triggered:
-            alerts.append(build_alert_msg(nick, t, kind, amount))
+            alerts.append(build_alert_msg(nick, t, kind, amount, address))
 
         if condition_id and condition_id not in seen_markets:
             new_seen_markets.append(condition_id)
